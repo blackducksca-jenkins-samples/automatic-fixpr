@@ -29,8 +29,7 @@ pipeline {
                             echo "Workspace is ${WORKSPACE}"
                             security_scan blackducksca_fixpr_enabled: true, blackducksca_fixpr_filter_severities: 'CRITICAL,HIGH',
                                          blackducksca_fixpr_maxCount: 2, blackducksca_fixpr_useUpgradeGuidance: 'SHORT_TERM,LONG_TERM', 
-                                         detect_args: 'detect.source.path=${WORKSPACE}/nodejs-npm', 
-                                         github_token: "${env.GIT_PAT}", blackducksca_waitForScan: true, product: 'blackducksca' 
+                                         detect_args: 'detect.source.path=${WORKSPACE}/nodejs-npm', blackducksca_waitForScan: true, product: 'blackducksca' 
                         }
                     }
                 }
