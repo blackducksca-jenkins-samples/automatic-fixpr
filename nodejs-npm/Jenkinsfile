@@ -1,0 +1,48 @@
+@Library('blackduck-logs-publisher') _
+
+pipeline {
+    agent { label 'mac-sh' }
+
+    stages {
+        stage("Build") {
+            steps {
+                script {
+                    echo "JOB_NAME: ${env.JOB_NAME}"
+
+                    dir('nodejs-npm') {
+                        sh 'node --version'
+                        sh 'npm --version'
+                        sh 'npm install'
+                    }
+                }
+            }
+        }
+
+        stage("blackduck-security-scan") {
+            steps {
+                script {
+                    dir('nodejs-npm') {
+                        def projectName = env.JOB_NAME.split('/')[0]
+                        echo "DETECT_PROJECT_NAME will be set to: ${projectName}"
+
+                        withEnv(["DETECT_PROJECT_NAME=${projectName}"]) {
+                            security_scan blackducksca_fixpr_enabled: true, blackducksca_fixpr_filter_severities: 'CRITICAL',
+                                         blackducksca_fixpr_maxCount: 2, blackducksca_fixpr_useUpgradeGuidance: 'SHORT_TERM', 
+                                         blackducksca_waitForScan: true, product: 'blackducksca' 
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            pushJenkinsLogsToGitHub([
+                githubOrg: 'blackducksca-jenkins-samples',
+                repoName: 'automatic-fixpr',
+                retentionCount: 5
+            ])
+        }
+    }
+}
